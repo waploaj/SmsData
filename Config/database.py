@@ -12,7 +12,7 @@ class Connection:
         except pymysql.MySQLError as e:
             pass
         finally:
-            logging.INFO(e)
+            pass
 
     def run_query(self,query):
         try:
@@ -34,5 +34,5 @@ class Connection:
             if self.conn:
                 self.conn.close()
                 self.conn = None
-                logging.INFO("Connection is closed!!")
+
 
