@@ -1,33 +1,41 @@
 from lxml import html
 from selenium import webdriver
+from Config.database import Connection
 
 driver = webdriver.Chrome(executable_path='/home/waploaj/chromedriver_linux64/chromedriver')
 
 if __name__ == "__main__":
-    driver.get("xxxxxxxxxxx")
-    path = """//*[@id="tl"]/tbody[2]"""
+    driver.get("https://www.citypopulation.de/en/tanzania/cities/")
+    path = """//*[@id="tl"]/tbody"""
     table = driver.find_element_by_xpath(f"{path}")
-    gender = driver.find_element_by_xpath("""//*[@id="chartgrid"]/section/table/tbody""")
-    name = {}
-    for ro in gender.find_elements_by_tag_name('tr'):
-        ge = ro.text
-        g = ge.split()
-        name['male'] = g[0]
-        name['female'] = g[1]
-    for row in table.find_elements_by_tag_name('tr'):
-        ro = row.text
-        t = ro.split()
-        if len(t) > 5:
-            name["ward"]=t[1] + " " + t[0]
-            name["mun"] = t[2] + " "+ t[3]
-            name["pop02"] = t[4]
-            name['pop12'] = t[5]
+    citys = {}
 
-        else:
-            name["ward"] = t[0]
-            name["mun"] = t[1] + " " + t[2]
-            name["pop02"] = t[3]
-            name['pop12'] = t[4]
+    for row in table.find_elements_by_tag_name("tr"):
+        city = row.text
+        ci = city.split()
+        citys["name"] = ci[0]
+        citys["population"] = ci[8]
+        citys["pop_projection"] = ci[9]
+        print(citys
+              )
+        p = Connection()
+        name =citys["name"]
+        po_12 =citys["population"]
+        projection = citys["pop_projection"]
+        query = f"insert into nchizetu.city({name},{po_12},{projection}"
+        p.run_query(query)
 
-    print(name)
+        # for i in range(0,27):
+        #     url = f"https://www.citypopulation.de/en/tanzania/admin/{i}__arusha/"
+        #     driver.get(url)
+        #     path = """//*[@id="tl"]/tbody[2]"""
+        #     ward = driver.find_element_by_xpath(f"{path}")
+        # print(citys["name"])
+
+
+
+
+
+
+
 
