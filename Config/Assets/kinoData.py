@@ -1,36 +1,67 @@
 from lxml import html
 from selenium import webdriver
-from Config.database import Connection
+import pymysql
 
-driver = webdriver.Chrome(executable_path='/home/waploaj/chromedriver_linux64/chromedriver')
+class CityData:
 
-if __name__ == "__main__":
-    driver.get("https://www.citypopulation.de/en/tanzania/cities/")
-    path = """//*[@id="tl"]/tbody"""
-    table = driver.find_element_by_xpath(f"{path}")
-    citys = {}
 
-    for row in table.find_elements_by_tag_name("tr"):
-        city = row.text
-        ci = city.split()
-        citys["name"] = ci[0]
-        citys["population"] = ci[8]
-        citys["pop_projection"] = ci[9]
-        print(citys
-              )
-        p = Connection()
-        name =citys["name"]
-        po_12 =citys["population"]
+    def __init__(self):
+        self.driver = webdriver.Chrome(executable_path='/home/waploaj/chromedriver_linux64/chromedriver')
+        self.conn = pymysql.connect("127.0.0.1",'root','','nchizetu')
+
+    def city_population(self):
+        self.driver.get("https://www.citypopulation.de/en/tanzania/cities/")
+        path = """//*[@id="tl"]/tbody"""
+        table = self.driver.find_element_by_xpath(f"{path}")
+        citys = {}
+
+        for row in table.find_elements_by_tag_name("tr"):
+            city = row.text
+            ci = city.split()
+            citys["name"] = ci[0]
+            citys["population"] = ci[8]
+            citys["pop_projection"] = ci[9]
+        return citys
+
+    def save_city_population(self):
+        p = CityData()
+        citys = p.city_population()
+        name = citys["name"]
+        po_12 = citys["population"]
         projection = citys["pop_projection"]
-        query = f"insert into nchizetu.city({name},{po_12},{projection}"
-        p.run_query(query)
+        with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            query = f"INSERT INTO nchizetu.city(name,population,po_projection)VALUES('{name}','{po_12}','{projection}')"
+            cursor.execute(query)
+            self.conn.commit()
 
-        # for i in range(0,27):
-        #     url = f"https://www.citypopulation.de/en/tanzania/admin/{i}__arusha/"
-        #     driver.get(url)
-        #     path = """//*[@id="tl"]/tbody[2]"""
-        #     ward = driver.find_element_by_xpath(f"{path}")
-        # print(citys["name"])
+    def city_gender_info(self):
+        for i in range(0, 30):
+            if i < 10:
+                url = f"https://www.citypopulation.de/en/tanzania/admin/0{i}__arusha/"
+            else:
+                url = f"https://www.citypopulation.de/en/tanzania/admin/{i}__arusha/"
+
+            self.driver.get(url)
+            gender = self.driver.find_element_by_xpath("""//*[@id="admtable"]/header/h1/span""")
+            city = gender.text.lower()
+            table = self.driver.find_elements_by_tag_name("tr")
+
+            with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                query = "SELECT * FROM nchizetu.city"
+                cursor.execute(query)
+                row = cursor.fetchall()
+            for ro in row:
+                if ro["name"].lower() == city:
+                    print(city)
+
+
+
+
+
+
+
+
+
 
 
 

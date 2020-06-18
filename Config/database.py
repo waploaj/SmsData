@@ -8,9 +8,9 @@ class Connection:
     def opening_connection(self):
         try:
             if self.conn == None:
-                self.conn = pymysql.connect("127.0.0.1",'root','','watu')
+                self.conn = pymysql.connect("127.0.0.1",'root','','nchizetu')
         except pymysql.MySQLError as e:
-            pass
+            print(e)
         finally:
             pass
 
@@ -29,7 +29,7 @@ class Connection:
                     return f"{affectedrow} number of row affected!!"
 
         except pymysql.MySQLError as e:
-            logging.INFO(e)
+            pass
         finally:
             if self.conn:
                 self.conn.close()
