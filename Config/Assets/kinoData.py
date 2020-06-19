@@ -44,7 +44,7 @@ class CityData:
             self.driver.get(url)
             gender = self.driver.find_element_by_xpath("""//*[@id="admtable"]/header/h1/span""")
             city = gender.text.lower()
-            table = self.driver.find_elements_by_tag_name("tr")
+
 
             with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
                 query = "SELECT * FROM nchizetu.city"
@@ -52,10 +52,21 @@ class CityData:
                 row = cursor.fetchall()
             for ro in row:
                 if ro["name"].lower() == city:
-                    print(city)
+                    # print(city)
+                    table = self.driver.find_element_by_xpath("""//*[@id="chartgrid"]/section[1]/table/tbody""")
+                    for row in table.find_elements_by_tag_name("tr"):
+                        city = row.text
+                        lis = (city.split())
+                        for i in lis:
+                            print(i)
+                    ages = self.driver.find_element_by_xpath("""//*[@id="chartgrid"]/section[4]/table/tbody""")
+                    for age in ages.find_elements_by_tag_name("tr"):
+                        print(age.text)
 
 
 
+p = CityData()
+print(p.city_gender_info())
 
 
 
