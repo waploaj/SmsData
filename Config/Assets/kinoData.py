@@ -34,8 +34,19 @@ class CityData:
             cursor.execute(query)
             self.conn.commit()
 
+    @staticmethod
+    def city_info():
+        p = CityData()
+        with p.conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            query="SELECT * FROM nchizetu.city"
+            cursor.execute(query)
+            row=cursor.fetchall()
+        return row
+
     @property
     def city_gender_info(self):
+
+        wilaya = {}
         for i in range(0,30):
             if i<10:
                 url=f"https://www.citypopulation.de/en/tanzania/admin/0{i}__arusha/"
@@ -43,17 +54,26 @@ class CityData:
                 url=f"https://www.citypopulation.de/en/tanzania/admin/{i}__arusha/"
 
             self.driver.get(url)
-            gender=self.driver.find_element_by_xpath("""//*[@id="admtable"]/header/h1/span""")
-            city=gender.text.lower()
+            gender=self.driver.find_element_by_xpath("""//*[@id="tl"]/tbody[2]""")
+            city = self.driver.find_element_by_xpath("""//*[@id="admtable"]/header/h1/span""")
 
-            with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
-                query="SELECT * FROM nchizetu.city"
-                cursor.execute(query)
-                row=cursor.fetchall()
-        return row
+        for row in gender.find_elements_by_tag_name("tr"):
+            wards = row.text
+            ward = wards.split()
+            name =  wilaya["name"] = ward[0]
+            po_02 = wilaya["2002"] = ward[3]
+            po_12 = wilaya["2012"] = ward[4]
 
-        # ages = self.driver.find_element_by_xpath("""//*[@id="chartgrid"]/section[4]/table/tbody""")  # for age in
-        # ages.find_elements_by_tag_name("tr"):  #     print(age.text)
+            database = CityData.city_info()
+            for data in database:
+                if data["name"] == city.text:
+                    city_id = data["city_id"]
+
+                    with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                        query=f"INSERT INTO nchizetu.ward(name,city_id,po_02,po_12)VALUES('{name}','{city_id}','{po_02}','{po_12}')"
+                        cursor.execute(query)
+                        self.conn.commit()
+
 
     def age_distribution(self):
         return None
@@ -65,4 +85,4 @@ class CityData:
         return None
 
 p=CityData()
-print(p.age_distribution())
+print(p.city_gender_info())
