@@ -72,8 +72,9 @@ class CityData:
                     with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
                         query=f"INSERT INTO nchizetu.ward(name,city_id,po_02,po_12)VALUES('{name}','{city_id}','{po_02}','{po_12}')"
                         cursor.execute(query)
+                        rows = cursor.rowcount
                         self.conn.commit()
-
+        return f"{rows} are affected!!"
 
     def age_distribution(self):
         return None
