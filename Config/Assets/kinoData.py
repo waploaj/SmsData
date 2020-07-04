@@ -55,26 +55,37 @@ class CityData:
 
             self.driver.get(url)
             gender=self.driver.find_element_by_xpath("""//*[@id="tl"]/tbody[2]""")
-            city = self.driver.find_element_by_xpath("""//*[@id="admtable"]/header/h1/span""")
+            try:
+                city = self.driver.find_element_by_xpath("""//*[@id="admtable"]/header/h1/span""")
+            except Exception as e:
+                pass
 
         for row in gender.find_elements_by_tag_name("tr"):
             wards = row.text
             ward = wards.split()
-            name =  wilaya["name"] = ward[0]
+            if "rural" or "city" in ward.lower():
+                name =  wilaya["name"] = ward[0] + ward[1]
+            else:
+                name = wilaya["name"] = ward[0]
+
             po_02 = wilaya["2002"] = ward[3]
             po_12 = wilaya["2012"] = ward[4]
 
             database = CityData.city_info()
-            for data in database:
-                if data["name"] == city.text:
-                    city_id = data["city_id"]
+            if "Administrative Division" in city.text:
+                pass
+            else:
+                for data in database:
+                    if data["name"] == city.text:
+                        city_id = data["city_id"]
 
-                    with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
-                        query=f"INSERT INTO nchizetu.ward(name,city_id,po_02,po_12)VALUES('{name}','{city_id}','{po_02}','{po_12}')"
-                        cursor.execute(query)
-                        rows = cursor.rowcount
-                        self.conn.commit()
-        return f"{rows} are affected!!"
+                        with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                            query=f"INSERT INTO nchizetu.ward(name,city_id,po_02,po_12)VALUES('{name}','{city_id}','{po_02}','{po_12}')"
+                            cursor.execute(query)
+                            gender["rows"] = cursor.rowcount
+                            self.conn.commit()
+        return gender
+
 
     def age_distribution(self):
         return None
